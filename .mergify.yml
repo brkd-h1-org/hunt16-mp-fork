@@ -1,0 +1,31 @@
+merge_protections:
+  - name: extra-on-forks
+    if:
+      - from-fork
+    success_conditions:
+      - label = fork-ok
+
+merge_protections_settings:
+  reporting_method: check-runs
+  post_comment: true
+
+merge_queue:
+  checking_label: mq-checking
+  queued_label: mq-queued
+  max_parallel_checks: 1
+
+queue_rules:
+  - name: default
+    queue_conditions:
+      - label = go
+    merge_conditions: []
+    merge_method: merge
+    branch_protection_injection_mode: queue
+
+pull_request_rules:
+  - name: queue when labeled go
+    conditions:
+      - label = go
+    actions:
+      queue:
+        name: default
