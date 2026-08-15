@@ -1,0 +1,38 @@
+name: lowpriv-actor
+on:
+  workflow_dispatch:
+    inputs:
+      op:
+        required: true
+        default: comment
+      target:
+        required: true
+      body:
+        required: true
+      head:
+        required: false
+        default: release
+permissions:
+  pull-requests: write
+  issues: write
+jobs:
+  say:
+    runs-on: ubuntu-latest
+    steps:
+      - name: act as github-actions[bot] with pull-requests:write only
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          OP: ${{ inputs.op }}
+          TARGET: ${{ inputs.target }}
+          BODY: ${{ inputs.body }}
+          HEAD: ${{ inputs.head }}
+        run: |
+          printf '%s' "$BODY" > /tmp/b.txt
+          case "$OP" in
+            comment) gh api "repos/$GITHUB_REPOSITORY/issues/$TARGET/comments" -F body=@/tmp/b.txt ;;
+            approve) gh api "repos/$GITHUB_REPOSITORY/pulls/$TARGET/reviews" -F body=@/tmp/b.txt -f event=APPROVE ;;
+            label)   gh api "repos/$GITHUB_REPOSITORY/issues/$TARGET/labels" -f "labels[]=$BODY" ;;
+            unlabel) gh api -X DELETE "repos/$GITHUB_REPOSITORY/issues/$TARGET/labels/$BODY" ;;
+            assign)  gh api "repos/$GITHUB_REPOSITORY/issues/$TARGET/assignees" -f "assignees[]=$BODY" ;;
+            openpr)  gh api "repos/$GITHUB_REPOSITORY/pulls" -F title="$BODY" -F head="$HEAD" -F base=main -F body="opened by github-actions[bot]" ;;
+          esac
