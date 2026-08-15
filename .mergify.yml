@@ -18,7 +18,8 @@ queue_rules:
   - name: default
     queue_conditions:
       - label = go
-    merge_conditions: []
+    merge_conditions:
+      - label = merge-now
     merge_method: merge
     branch_protection_injection_mode: queue
 
