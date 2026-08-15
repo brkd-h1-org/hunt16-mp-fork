@@ -1,0 +1,33 @@
+name: head-writer
+on:
+  workflow_dispatch:
+    inputs:
+      branch:
+        required: true
+      path:
+        required: true
+      text:
+        required: true
+      message:
+        required: true
+permissions:
+  contents: write
+jobs:
+  write:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.branch }}
+      - name: commit as github-actions[bot]
+        env:
+          PATH_IN: ${{ inputs.path }}
+          TEXT_IN: ${{ inputs.text }}
+          MSG_IN: ${{ inputs.message }}
+        run: |
+          printf '%s' "$TEXT_IN" > "$PATH_IN"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "$MSG_IN"
+          git push
